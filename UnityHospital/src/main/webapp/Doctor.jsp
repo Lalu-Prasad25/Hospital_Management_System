@@ -1,0 +1,169 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Unity Hospital</title>
+    <link rel="icon" href="images/hospitallogo.webp">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.7/dist/css/bootstrap.min.css" rel="stylesheet"
+          integrity="sha384-LN+7fdVzj6u52u30Kp6M/trliBMCMKTyK833zpbD+pXdCLuTusPj697FH4R/5mcr" crossorigin="anonymous">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Quintessential&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.13.1/font/bootstrap-icons.min.css">
+    <%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
+    <%@ page isELIgnored="false" %>
+    <style>
+ .quintessential-regular {
+  font-family: "Quintessential", serif;
+  font-weight: 400;
+  font-style: normal;
+}
+    </style>
+</head>
+<body class="bg-success-subtle">
+<nav class="navbar bg-body-tertiary mb-5" data-bs-theme="dark">
+    <div class="container-fluid">
+        <a class="navbar-brand d-flex align-items-center text-success" href="#">
+            <img src="images/hospitallogo.webp" alt="Logo" width="60" height="40" class="me-2">
+            <span class="fw-bold fs-5 quintessential-regular">UNITY HOSPITAL</span>
+        </a>
+        <div class="d-flex">
+            <a href="Home" class="btn btn-outline-success"><i class="bi bi-house"></i></a>
+        </div>
+    </div>
+</nav>
+
+
+<div class="container">
+    <form class="bg-success p-5  rounded shadow" style="max-width: 720px; margin:auto;"
+          action="registerDoctor" enctype="multipart/form-data" method="post">
+        <h2 class="text-center text-light mb-4">Doctor Registration</h2>
+
+        <c:if test="${not empty error}">
+            <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                <ul class="mb-0">
+                    <c:forEach var="err" items="${error}">
+                        <li class="text-danger small">${err.defaultMessage}</li>
+                    </c:forEach>
+                </ul>
+            </div>
+        </c:if>
+
+        <c:if test="${not empty imageError}">
+            <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                <span class="text-danger small" >${imageError}</span>
+            </div>
+        </c:if>
+
+
+        <div class="row g-3">
+            <div class="col-md-6">
+                <label for="doctorNameId" class="form-label fw-semibold">Name</label>
+                <span class="text-danger">*</span>
+                <input type="text" class="form-control" id="doctorNameId" oninput="validateName()" name="doctorName"
+                       minlength="3" maxlength="10" value="${dto.doctorName}" required>
+                <span class="text-warning small" id="doctorNameErrorId"></span>
+            </div>
+
+            <div class="col-md-6">
+                <label for="doctorEmailId" class="form-label fw-semibold">Email</label>
+                <span class="text-danger">*</span>
+                <input type="email" class="form-control" id="doctorEmailId" name="doctorEmail"
+                       oninput="validateEmail()" onchange="checkDoctorEmail()" value="${dto.doctorEmail}" required>
+                <span class="text-warning small" id="doctorEmailErrorId"></span>
+            </div>
+
+            <div class="col-md-6">
+                <label for="doctorPhoneId" class="form-label fw-semibold">Phone</label>
+                <span class="text-danger">*</span>
+                <input type="text" class="form-control" id="doctorPhoneId" name="doctorPhone"
+                       oninput="validatePhone();" maxlength="10" value="${dto.doctorPhone}" required>
+                <span class="text-warning small" id="doctorPhoneErrorId"></span>
+            </div>
+
+            <div class="col-md-6">
+                <label for="specializationId" class="form-label fw-semibold">Specialization</label>
+                <span class="text-danger">*</span>
+                <select class="form-select" name="specialization" id="specializationId" required>
+                    <option selected disabled>Select Specialization</option>
+                    <c:forEach var="specializationDto" items="${specializations}">
+                        <option value="${specializationDto.specialization}"
+                        <c:if test="${specializationDto.specialization eq dto.specialization}">selected</c:if>>
+                        ${specializationDto.specialization}
+                        </option>
+                    </c:forEach>
+                </select>
+                <span class="text-warning small" id="specializationErrorId"></span>
+            </div>
+
+            <div class="col-md-6">
+                <label for="qualificationId" class="form-label fw-semibold">Qualification</label>
+                <span class="text-danger">*</span>
+                <input type="text" class="form-control" id="qualificationId" name="qualification"
+                       placeholder="e.g., MBBS, MD" value="${dto.qualification}" oninput="validateQualification()" maxlength="10" required>
+                <span class="text-warning small" id="qualificationErrorId"></span>
+            </div>
+
+            <div class="col-md-6">
+                <label for="experienceId" class="form-label fw-semibold">Experience (Years)</label>
+                <span class="text-danger">*</span>
+                <input type="number" class="form-control" id="experienceId" name="experience"
+                       oninput="validateExperience()" value="${dto.experience}" min="0" max="50" placeholder="e.g., 5" required>
+                <span class="text-warning small" id="experienceErrorId"></span>
+            </div>
+
+            <div class="col-12">
+                <label for="profilePhotoId" class="form-label fw-semibold" >Choose Profile Photo</label>
+                <input class="form-control" type="file" id="profilePhotoId" name="image" accept="image/*" onchange="profilePhotoValidate()">
+                <span class="text-warning small" id="imageErrorId"></span>
+            </div>
+        </div>
+
+        <div class="d-grid mt-4">
+            <button type="submit" class="btn btn-dark fw-bold">Register Doctor</button>
+        </div>
+
+
+    </form>
+</div>
+<c:if test="${not empty status}">
+    <c:if test="${status eq 'Registered SuccessFully'}">
+    <div class="position-fixed bottom-0 end-0  p-3 " >
+        <div class="toast align-items-center text-bg-dark " role="alert" aria-live="assertive" aria-atomic="true">
+            <div class="d-flex">
+                <div class="toast-body text-success">
+                    ${status}
+                </div>
+                <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+            </div>
+        </div>
+    </div>
+    </c:if>
+    <c:if test="${status eq 'Doctor Not Registered'}">
+        <div class="position-fixed bottom-0 end-0  p-3 " >
+            <div class="toast align-items-center text-bg-dark " role="alert" aria-live="assertive" aria-atomic="true">
+                <div class="d-flex">
+                    <div class="toast-body text-danger">
+                        ${status}
+                    </div>
+                    <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+                </div>
+            </div>
+        </div>
+    </c:if>
+</c:if>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.7/dist/js/bootstrap.bundle.min.js"></script>
+<script src="js/index.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+   const toastElList = document.querySelectorAll('.toast');
+   toastElList.forEach(toastEl => {
+       const toast = new bootstrap.Toast(toastEl, { delay: 3000 });
+       toast.show();
+   });
+});
+</script>
+</body>
+</html>

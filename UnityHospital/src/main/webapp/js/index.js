@@ -1,0 +1,272 @@
+
+function checkEmail(){
+let email=document.getElementById("emailId").value;
+let emailError=document.getElementById("emailError");
+
+const xhhtp=new XMLHttpRequest();
+
+xhhtp.open("GET","http://localhost:8080/UnityHospital/checkEmail/"+email);
+xhhtp.send();
+xhhtp.onload=function(){
+emailError.innerHTML=this.responseText;
+}
+}
+
+
+
+let timer;
+function timeCount(){
+let timeCountEl = document.getElementById("timeCountId");
+let resend = document.getElementById("resendId");
+let timeoutMessage = document.getElementById("timeoutMessageId");
+
+let storedExpiryTime = sessionStorage.getItem("otpExpiry");
+let expiryTime;
+
+if(!storedExpiryTime){
+expiryTime = Date.now() + 120000;
+sessionStorage.setItem("otpExpiry", expiryTime);
+} else {
+expiryTime = Number(storedExpiryTime);
+}
+
+if(timer){
+clearInterval(timer);
+}
+timer = setInterval(function(){
+const remainingTime = Math.floor((expiryTime - Date.now()) / 1000);
+
+if(remainingTime > 0){
+timeCountEl.textContent = `Resend OTP in ${remainingTime}s`;
+resend.disabled = true;
+timeoutMessage.textContent = "";
+} else {
+timeCountEl.textContent = "";
+timeoutMessage.textContent = "Time Out. You can resend OTP";
+resend.disabled = false;
+clearInterval(timer);
+sessionStorage.removeItem("otpExpiry");
+}
+}, 1000);
+}
+
+sessionStorage.removeItem("otpExpiry")
+
+
+function sendOtp(){
+let email=document.getElementById("emailId").value;
+let otpStatus=document.getElementById("otpStatusId");
+let otpContainer=document.getElementById("otpContainerId");
+let sendOtpButton=document.getElementById("sendOtpButton");
+
+otpStatus.innerHTML="Sending to your email...."
+const xhhtp=new XMLHttpRequest();
+xhhtp.open("GET","http://localhost:8080/UnityHospital/sendOtp/"+email);
+xhhtp.send();
+xhhtp.onload=function(){
+otpStatus.innerHTML=this.responseText;
+if(this.responseText.toLowerCase().includes("otp not sent")){
+otpContainer.classList.add("d-none");
+}else{
+timeCount();
+sendOtpButton.classList.add("d-none");
+otpContainer.classList.remove("d-none");
+}
+}
+}
+
+
+function verifyOtp() {
+    let otp = document.getElementById("otpId").value;
+    let loginButton = document.getElementById("loginButtonId");
+
+    loginButton.disabled = true;
+
+    const xhhtp = new XMLHttpRequest();
+    xhhtp.open("GET", "http://localhost:8080/UnityHospital/verifyOtp/" + otp);
+    xhhtp.send();
+
+    xhhtp.onload = function () {
+        if (this.responseText.toLowerCase().includes("pass")) {
+            loginButton.disabled = false;
+        } else {
+            loginButton.disabled = true;
+        }
+    };
+}
+
+
+async function resetTimeOtp(){
+    let loginButton = document.getElementById("loginButtonId");
+    let timeoutMessage=document.getElementById("timeoutMessageId");
+    loginButton.disabled = true;
+    const xhhtp = new XMLHttpRequest();
+    clearInterval(timer);
+    xhhtp.open("GET", "http://localhost:8080/UnityHospital/resetTimeOtp/");
+    xhhtp.send();
+    timeoutMessage.classList.remove("text-danger")
+     timeoutMessage.classList.add("text-warning")
+    timeoutMessage.innerHTML="Resending..."
+    xhhtp.onload=function(){
+    timeoutMessage.classList.remove("text-warning")
+    timeoutMessage.classList.add("text-danger")
+    timeoutMessage.innerHTML=""
+    sessionStorage.setItem("otpExpiry", Date.now() + 120000);
+    timeCount();
+    }
+}
+
+
+function validateName(){
+    let doctorName = document.getElementById("doctorNameId");
+    let doctorNamePattern = /^[A-Za-z]+$/;
+    let doctorNameError = document.getElementById("doctorNameErrorId");
+
+    doctorName.value=doctorName.value.replace(/[^A-Za-z]/g,'')
+
+    if (doctorName.value.length < 3 || doctorName.value.length > 10 || !doctorNamePattern.test(doctorName.value)) {
+        doctorNameError.innerHTML = "Name length should be 3 to 10 characters and must not contain numbers.";
+    } else {
+        doctorNameError.innerHTML = "";
+    }
+}
+
+function validateEmail(){
+    let doctorEmail = document.getElementById("doctorEmailId").value;
+    let doctorEmailError = document.getElementById("doctorEmailErrorId");
+    let emailPattern = /^[a-z0-9._]+@gmail\.com$/;
+
+    if (!emailPattern.test(doctorEmail)) {
+        doctorEmailError.innerHTML = "Email must follow this pattern: username@gmail.com";
+    } else {
+        doctorEmailError.innerHTML = "";
+    }
+}
+
+function validatePhone(){
+    let doctorPhone = document.getElementById("doctorPhoneId");
+        let doctorPhoneError = document.getElementById("doctorPhoneErrorId");
+        doctorPhone.value = doctorPhone.value.replace(/[^0-9]/g, '');
+        let phonePattern=/^[6-9]\d{9}$/;
+        if (!phonePattern.test(doctorPhone.value)) {
+            doctorPhoneError.innerHTML = "Phone must start with 6 to 9 and be exactly 10 digits.";
+        } else {
+            doctorPhoneError.innerHTML = "";
+        }
+}
+
+
+function validateSpecialization(){
+let specialization=document.getElementById("specializationId");
+let specializationError=document.getElementById("specializationErrorId");
+if(specialization.value==="Select Specialization" ||specialization.value===""){
+specializationError.innerHTML="Select a Specialization";
+}else{
+specializationError.innerHTML="";
+}
+}
+
+
+function validateQualification(){
+let qualification=document.getElementById("qualificationId");
+let qualificationError=document.getElementById("qualificationErrorId");
+if(qualification.value.length>10){
+qualificationError.innerHTML="Qualification length should be 10";
+}else{
+qualificationError.innerHTML="";
+}
+}
+
+function validateExperience(){
+let experience=document.getElementById("experienceId");
+ let experienceError=document.getElementById("experienceErrorId");
+ if(experience.value<0||experience.value>50){
+ experienceError.innerHTML="Experience Should be between 0 and 50";
+ }else{
+ experienceError.innerHTML="";
+ }
+}
+
+
+function profilePhotoValidate(){
+let fileInput=document.getElementById("profilePhotoId");
+let imageError=document.getElementById("imageErrorId");
+const file=fileInput.files[0];
+const fileSize=1*1024*1024;
+if(file.size>fileSize){
+      imageError.innerHTML="Image size should not be above 1MB";
+}else{
+  imageError.innerHTML=" ";
+}
+}
+
+
+
+
+function checkDoctorEmail(){
+   let doctorEmail = document.getElementById("doctorEmailId").value;
+    let doctorEmailError = document.getElementById("doctorEmailErrorId");
+
+    const xhhtp=new XMLHttpRequest();
+
+    xhhtp.open("GET","http://localhost:8080/UnityHospital/checkDoctorEmail/"+doctorEmail);
+
+    xhhtp.send();
+    xhhtp.onload=function(){
+    doctorEmailError.innerHTML=this.responseText;
+    }
+}
+
+let doctorSelectMessage= document.getElementById("doctorSelectMessageId");
+doctorSelectMessage.innerHTML="Select Doctor";
+
+function displayEmail(){
+doctorSelectMessage.innerHTML=" ";
+let doctorName=document.getElementById("doctorNameId");
+let selectedOption=doctorName.options[doctorName.selectedIndex];
+document.getElementById("doctorEmail").value=selectedOption.getAttribute("data-email");
+}
+
+
+
+async function checkInterval(){
+const setSlotButton=document.getElementById("setSlotButtonId");
+const timeInterval=document.getElementById("timeIntervalId").value;
+const docEmail=document.getElementById("doctorEmail").value;
+const intervalError=document.getElementById("intervalErrorId");
+intervalError.innerHTML="";
+setSlotButton.disabled=true;
+const result=await axios.get("http://localhost:8080/UnityHospital/checkSlot?email="+docEmail+"&interval="+timeInterval);
+const response=result.data;
+if(response==="notset"){
+setSlotButton.disabled=false;
+}else{
+setSlotButton.disabled=true;
+intervalError.innerHTML="Time Slot already set"
+}
+}
+
+
+window.addEventListener("pageshow", function(event) {
+    if (event.persisted) {
+        window.location.reload();
+    }
+});
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
